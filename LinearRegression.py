@@ -29,8 +29,13 @@ test_data['TotalRooms'] = test_data['BsmtFullBath'] + test_data['BsmtHalfBath'] 
 #print(train_data[['SalePrice']].head())
 
 # Calculating parameters from training data
-X_train = train_data[['TotalSquareFootage', 'TotalRooms']]
+X = train_data[['TotalSquareFootage', 'TotalRooms']]
+Y = train_data['SalePrice']
+
+X_train, X_val, Y_train, Y_val = train_test_split(X, Y, test_size=0.2, random_state=42)
+
 X_train_scaled = scaler.fit_transform(X_train)
+X_val_scaled = scaler.transform(X_val)
 
 # Fill NaN with zero in test data
 test_data['TotalSquareFootage'] = test_data['TotalSquareFootage'].fillna(0)  
@@ -40,7 +45,7 @@ test_data['TotalRooms'] = test_data['TotalRooms'].fillna(0)
 X_test = test_data[['TotalSquareFootage', 'TotalRooms']]
 X_test_scaled = scaler.transform(X_test)
 
-Y_train = train_data['SalePrice']
+
 
 # Initialization of Linear Regression model
 
@@ -48,13 +53,20 @@ model = LinearRegression()
 
 # Linear Regression fit on scaled data
 model.fit(X_train_scaled, Y_train)
+val_predictions = model.predict(X_val_scaled)
+
+mse = mean_squared_error(Y_val, val_predictions)
+r2 = r2_score(Y_val, val_predictions)
+
+print("Validation MSE:", mse)
+print("Validation R2 Score:", r2)
+
+test_predictions = model.predict(X_test_scaled)
+test_data['PredictedSalePrice'] = test_predictions
 
 print("Coefficients:", model.coef_)
 print("Intercept:", model.intercept_)
 
-# Make price predictions for test data
-test_predictions = model.predict(X_test_scaled)
-test_data['PredictedSalePrice'] = test_predictions
 
 print(train_data[['TotalSquareFootage', 'TotalRooms', 'SalePrice']].head())
 print(test_data[['TotalSquareFootage', 'TotalRooms', 'PredictedSalePrice']].head())
